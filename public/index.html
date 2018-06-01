@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>PHP片段</title>
+	<meta charset="UTF-8">
+	<link href="https://cdn.bootcss.com/normalize/8.0.0/normalize.min.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/element-ui/2.3.6/theme-chalk/index.css">
+	<link rel="stylesheet" type="text/css" href="/css/index.css">
+	<script src="https://cdn.bootcss.com/vue/2.5.16/vue.min.js"></script>
+	<script src="https://cdn.bootcss.com/element-ui/2.3.7/index.js"></script>
+	<script src="https://cdn.bootcss.com/axios/0.18.0/axios.min.js"></script>
+	<script src="https://cdn.bootcss.com/qs/6.5.2/qs.min.js"></script>
+</head>
+<body>
+	<div id="app">
+		<header>
+			<el-menu
+				:default-active="'1'"
+				class="title"
+				mode="horizontal"
+				background-color="#333"
+				text-color="#ddd"
+				active-text-color="#ffd04b">
+				<el-menu-item index="0">PHP片段</el-menu-item>
+			</el-menu>
+		</header>
+		<div class="main">
+			<el-card class="box-card">
+			  <div slot="header" class="clearfix">
+			    <span>发起http请求</span>
+			    <el-button style="float: right; padding: 3px 0" type="text">编辑</el-button>
+			    <el-button style="float: right; padding: 3px 0" type="text">收藏</el-button>
+			    <br>
+			    <el-tag size="small">函数</el-tag><el-tag size="small">网络请求</el-tag>
+			    <span>2018-05-31 14:16:59</span>
+			    <span>使用量:88</span>
+			  </div>
+				<div>快捷发起http请求的函数,支付get和post,支持使用证书</div>
+				<div>参数
+					<table>
+						<th>
+							<td>参数名</td>
+							<td>参数值</td>
+							<td>说明</td>
+						</th>
+						<tr>
+							<td>url</td>
+							<td>http://baidu.com</td>
+							<td>请求的链接</td>
+						</tr>
+						<tr>
+							<td>请求参数</td>
+							<td>['wd'=>'php']</td>
+							<td>参数，数组形式</td>
+						</tr>
+					</table>
+				</div>
+				<div>代码
+					<code>
+						<pre>
+
+						</pre>
+					</code>
+				</div>
+			</el-card>
+		</div>
+		
+		<!-- 登录弹框 -->
+		<el-dialog 
+			title="登录" 
+			width="30%" 
+			:visible.sync="showLoginForm" 
+			:close-on-press-escape="false"
+			:show-close="false"
+			:close-on-click-modal="false">
+			<el-form :model="form">
+				<el-form-item label="" :label-width="300">
+					<el-input v-model="form.username" auto-complete="off">
+						<template slot="prepend">用户名</template>
+					</el-input>
+				</el-form-item>
+				<el-form-item label="" :label-width="300">
+					<el-input v-model="form.password" type="password" auto-complete="off">
+						<template slot="prepend">密&nbsp;&nbsp;&nbsp;码</template>
+					</el-input>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button type="primary">确 定</el-button>
+			</div>
+		</el-dialog>
+	</div>
+	<script>
+		var vm=new Vue({
+			el:'#app',
+			data:{
+				showLoginForm:false,
+				form:{},
+				list:[{
+					name:'发起http请求',
+					tag:['函数','网络请求'],
+					updated_at:'2018-05-31 14:16:59',
+					used:'80',
+					param:[
+						{key:'url',value:'http://baidu.com',desc:'请求地址'},
+						{key:'param',value:'["wd"=>"php"]',desc:'请求参数'}
+					],
+					desc:'快捷发起http请求的函数,支付get和post,支持使用证书',
+					code:''
+				}]
+			},
+			created(){
+				//初始化axios
+				axios.defaults.baseURL = ''
+				axios.defaults.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+				axios.defaults.headers['Token'] = ''
+
+				//拦截请求
+				axios.interceptors.request.use(function (config) {
+					if (Qs.stringify(config.data)) {
+						config.data = Qs.stringify(config.data)
+					}
+					return config
+				})
+
+				//拦截响应
+				axios.interceptors.response.use(function (response) {
+					if (response.data.code == 200) {
+						return response.data
+					}else{
+						return Promise.reject(response.data)
+					}
+				})
+			},
+			methods:{
+				//公共消息提示
+				msg(str){
+					ELEMENT.Notification({ title: str })
+				}
+			}
+		})
+	</script>
+</body>
+</html>

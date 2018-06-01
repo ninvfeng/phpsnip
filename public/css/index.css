@@ -1,0 +1,74 @@
+body{
+	background:#eee;
+}
+
+header{
+	width:100%;
+	background:#333;
+	height:60px;
+	color:#ddd;
+	font-size:24px;
+	line-height:60px;
+}
+
+.title{
+	width:1200px;
+	margin:0 auto;
+}
+
+.title .el-menu-item{
+	font-size:18px;
+}
+
+.el-table__header-wrapper .el-checkbox__inner{
+	display:none;
+}
+
+.table-head{
+	display:none;
+}
+
+.main{
+	width:1200px;
+	margin:0 auto;
+	background:#f6f6f6;
+	min-height:600px;
+}
+
+.todo{
+	width:600px;
+	float:left;
+	background:#fff;
+	min-height:600px;
+}
+
+.todo .title{
+	width:100px;
+	font-size:18px;
+	height:40px;
+	line-height:40px;
+}
+
+.todo .add{
+	width:520px;
+	margin:20px 0 0 40px;
+}
+
+.todo .done{
+	text-decoration:line-through;
+	color:#aaa;
+}
+
+.bookkeeping{
+	width:600px;
+	float:left;
+	background:#f6f6f6;
+	min-height:600px;
+}
+
+.bookkeeping .title{
+	width:100px;
+	font-size:18px;
+	height:40px;
+	line-height:40px;
+}
