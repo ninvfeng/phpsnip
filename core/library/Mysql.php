@@ -10,7 +10,7 @@ class Mysql
     protected $_limit='';
     protected $_join='';
     protected $_debug=false;
-    protected $param=[];
+    protected $_param=[];
 
     function __construct($config=[])
     {
@@ -63,15 +63,16 @@ class Mysql
     //条件
     public function where($where){
         if(is_array($where)){
-            $this->_param=$where;
             $res='';
             foreach($where as $k => $v){
                 $column_key='';
                 foreach (explode('.',$k) as $kk => $vv) {
                     $column_key.='`'.$vv.'`.';
+                    $column_plac='where_'.$vv;
                 }
+                $this->_param[$column_plac]=$v;
                 $column_key=trim($column_key,'.');
-                $res.=$column_key.'=:'.$k.' and';
+                $res.=$column_key.'=:'.$column_plac.' and';
             }
             $where=trim($res,'and');
         }
@@ -126,39 +127,42 @@ class Mysql
     //更新
     public function update($data){
         if($this->_where){
-            $this->_param=array_merge($this->_param,$data);
             $update='';
             foreach($data as $k => $v){
                 $column_key='';
                 foreach (explode('.',$k) as $kk => $vv) {
                     $column_key.='`'.$vv.'`.';
+                    $column_plac=$vv;
                 }
+                $this->_param[$column_plac]=$v;
                 $column_key=trim($column_key,'.');
-                $update.=$column_key."=:".$k.",";
+                $update.=$column_key."=:".$column_plac.",";
             }
             $update=trim($update,',');
             $sql="update {$this->_table} set $update {$this->_where};";
             return $this->exec($sql,$this->_param);
         }else{
-            error('保存数据需指定条件');
+            echo '保存数据需指定条件';
+            die();
         }
     }
 
     //添加
     public function insert($data){
-        $this->_param=array_merge($this->_param,$data);
         $update='';
         foreach($data as $k => $v){
             $column_key='';
             foreach (explode('.',$k) as $kk => $vv) {
                 $column_key.='`'.$vv.'`.';
+                $column_plac=$vv;
             }
+            $this->_param[$column_plac]=$v;
             $column_key=trim($column_key,'.');
-            $update.=$column_key."='".$v."',";
+            $update.=$column_key."=:".$column_plac.",";
         }
         $update=trim($update,',');
         $sql="insert into {$this->_table} set $update;";
-        $this->_exec($sql);
+        $this->exec($sql,$this->_param);
         return $this->_pdo->lastInsertId();
     }
 
@@ -166,27 +170,56 @@ class Mysql
     public function delete(){
         if($this->_where){
             $sql="delete from {$this->_table} {$this->_where};";
-            return $this->_exec($sql);
+            return $this->exec($sql,$this->_param);
         }else{
-            error('删除数据需指定条件');
+            echo '删除数据需指定条件';
+            die();
+        }
+    }
+
+    //自增
+    public function setInc($field,$step=1){
+        if($this->_where){
+            $update=$field.'='.$field.'+'.$step;
+            $sql="update {$this->_table} set $update {$this->_where};";
+            return $this->exec($sql);
+        }else{
+            echo '保存数据需指定条件';
+            die();
         }
     }
 
     //执行原生query
     public function query($sql,$param=[]){
-        $pre=$this->_pdo->prepare($sql);
-        $pre->execute($param);
-        if($this->_error()){
-            return $pre->fetchAll(\PDO::FETCH_ASSOC);
+        if($this->_debug){
+            echo "<pre>";
+            echo $sql;
+            echo "<br>";
+            print_r($param);
+            die();
+        }else{
+            $pre=$this->_pdo->prepare($sql);
+            $pre->execute($param);
+            if($this->_error()){
+                return $pre->fetchAll(\PDO::FETCH_ASSOC);
+            }
         }
     }
 
     //执行原生exec
     public function exec($sql,$param=[]){
-        $pre=$this->_pdo->prepare($sql);
-        $res=$pre->execute($param);
-        if($this->_error()){
-            return $res;
+        if($this->_debug){
+            echo "<pre>";
+            echo $sql;
+            echo "<br>";
+            print_r($param);
+            die();
+        }else{
+            $pre=$this->_pdo->prepare($sql);
+            $res=$pre->execute($param);
+            if($this->_error()){
+                return $res;
+            }
         }
     }
 
@@ -207,28 +240,10 @@ class Mysql
         }
     }
 
-    //执行
-    protected function _exec($sql){
-        if($this->_debug){
-            echo $sql;
-            die();
-        }else{
-            $res=$this->_pdo->exec($sql);
-            if($this->_error()){
-                return $res;
-            }
-        }
-    }
-
     //查询
     protected function _query(){
         $sql="select {$this->_field} from {$this->_table} {$this->_join} {$this->_where} {$this->_order} {$this->_limit}";
-        if($this->_debug){
-            echo $sql;
-            die();
-        }else{
-            return $this->query($sql,$this->_param);
-        }
+        return $this->query($sql,$this->_param);
     }
 
     //错误处理

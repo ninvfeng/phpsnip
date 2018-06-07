@@ -9,22 +9,27 @@
 namespace app\controller;
 class Index{
 
+    //显示首页
     public function index(){
     	header('location:/index.html');
     }
 
+    //获取1条数据
     public function one(){
-    	// $res=db('snippet')->where(['id'=>1])->select();
-    	// dump($res);
-    	// $res=db('snippet')->query('select * from snippet where `id`=:id',['id'=>1]);
-    	$res=db('snippet')->where(['id'=>1])->update(['name'=>'快捷发起http请求']);
-    	dump($res);
-    	// $data=db('snippet')->find();
-    	// $data['tag']=db('tag')
-	    // 	->field('tag.name')
-    	// 	->join('snippet_with_tag on snippet_with_tag.tag_id=tag.id')
-    	// 	->where(['snippet_with_tag.snippet_id'=>$data['id']])
-    	// 	->select();
-    	// json_response($data);
+    	$data=db('snippet')->find();
+        $data['param']=json_decode($data['param'],true);
+    	$data['tag']=db('tag')
+	    	->field('tag.name')
+    		->join('snippet_with_tag on snippet_with_tag.tag_id=tag.id')
+    		->where(['snippet_with_tag.snippet_id'=>1])
+    		->select();
+    	json_response($data);
+    }
+
+    //使用量+1
+    public function usedInc(){
+        $id=post('id','require');
+        $res=db('snippet')->debug()->where(['id'=>$id])->setInc('used',1);
+        dump($res);
     }
 }
