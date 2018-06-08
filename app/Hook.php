@@ -10,6 +10,7 @@ class Hook{
 		$list=[
 			'index/index',
 			'index/one',
+			'index/usedinc',
 			'index/test',
 			'task/login'
 		];

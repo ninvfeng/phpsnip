@@ -29,7 +29,7 @@ class Index{
     //使用量+1
     public function usedInc(){
         $id=post('id','require');
-        $res=db('snippet')->debug()->where(['id'=>$id])->setInc('used',1);
-        dump($res);
+        $res=db('snippet')->where(['id'=>$id])->setInc('used',1);
+        json_response($res);
     }
 }

@@ -168,6 +168,7 @@
 				//使用量+1
 				usedInc(){
 					if(!this.copied){
+						this.copied=true;
 						this.one.used++;
 						axios.post('/index/usedInc',{id:1},res=>{
 							console.log(res)
@@ -224,11 +225,12 @@
 			}
 		})
 	
-		//监听复制时间
+		//监听复制事件
         document.onkeydown=function(e){
 	        var e = event || window.event || arguments.callee.caller.arguments[0];
 			if (e.keyCode == 67 && e.ctrlKey) {    
 			    vm.usedInc()
+				vm.msg('复制成功!');
             }
 	    }
 	</script>

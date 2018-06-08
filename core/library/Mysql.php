@@ -182,7 +182,19 @@ class Mysql
         if($this->_where){
             $update=$field.'='.$field.'+'.$step;
             $sql="update {$this->_table} set $update {$this->_where};";
-            return $this->exec($sql);
+            return $this->exec($sql,$this->_param);
+        }else{
+            echo '保存数据需指定条件';
+            die();
+        }
+    }
+
+    //自减
+    public function setDec($field,$step=1){
+        if($this->_where){
+            $update=$field.'='.$field.'-'.$step;
+            $sql="update {$this->_table} set $update {$this->_where};";
+            return $this->exec($sql,$this->_param);
         }else{
             echo '保存数据需指定条件';
             die();
