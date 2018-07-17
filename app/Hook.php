@@ -9,10 +9,11 @@ class Hook{
 		//忽略验证方法
 		$list=[
 			'index/index',
-			'index/one',
+			'index/lists',
 			'index/usedinc',
 			'index/test',
-			'task/login'
+			'login/login',
+			'login/reg',
 		];
 
 		//非登陆接口验证token

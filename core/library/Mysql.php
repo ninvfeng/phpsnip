@@ -11,6 +11,7 @@ class Mysql
     protected $_join='';
     protected $_debug=false;
     protected $_param=[];
+    protected $_sql=[];
 
     function __construct($config=[])
     {
@@ -61,7 +62,10 @@ class Mysql
     }
 
     //条件
-    public function where($where){
+    public function where($where,$param=[]){
+        if($param){
+            $this->_param=array_merge($this->_param,$param);
+        }
         if(is_array($where)){
             $res='';
             foreach($where as $k => $v){
@@ -72,11 +76,12 @@ class Mysql
                 }
                 $this->_param[$column_plac]=$v;
                 $column_key=trim($column_key,'.');
+                
                 $res.=$column_key.'=:'.$column_plac.' and';
             }
             $where=trim($res,'and');
         }
-        $this->_where='where '.$where;
+        $this->_where.=' '.$where.' and';
         return $this;
     }
 
@@ -108,9 +113,10 @@ class Mysql
 
     //结果集
     public function select(){
+        $field=$this->_field;
         $res=$this->_query();
-        if(count($res[0])==1){
-            $column=explode('.',$this->_field);
+        if($res&&count($res[0])==1){
+            $column=explode('.',$field);
             $column=array_pop($column);
             $result=array_column($res,$column);
             return $result;
@@ -121,7 +127,15 @@ class Mysql
 
     //获取单条数据
     public function find(){
-        return $this->_query()[0];
+        $field=$this->_field;
+        $res=$this->_query()[0];
+        if($res&&count($res)==1){
+            $column=explode('.',$field);
+            $column=array_pop($column);
+            return $res[$column];
+        }else{
+            return $res;
+        }
     }
 
     //更新
@@ -139,8 +153,9 @@ class Mysql
                 $update.=$column_key."=:".$column_plac.",";
             }
             $update=trim($update,',');
-            $sql="update {$this->_table} set $update {$this->_where};";
-            return $this->exec($sql,$this->_param);
+            $this->preWhere();
+            $this->_sql="update {$this->_table} set $update {$this->_where};";
+            return $this->exec($this->_sql,$this->_param);
         }else{
             echo '保存数据需指定条件';
             die();
@@ -161,42 +176,19 @@ class Mysql
             $update.=$column_key."=:".$column_plac.",";
         }
         $update=trim($update,',');
-        $sql="insert into {$this->_table} set $update;";
-        $this->exec($sql,$this->_param);
+        $this->_sql="insert into {$this->_table} set $update;";
+        $this->exec($this->_sql,$this->_param);
         return $this->_pdo->lastInsertId();
     }
 
     //删除
     public function delete(){
         if($this->_where){
-            $sql="delete from {$this->_table} {$this->_where};";
-            return $this->exec($sql,$this->_param);
+            $this->preWhere();
+            $this->_sql="delete from {$this->_table} {$this->_where};";
+            return $this->exec($this->_sql,$this->_param);
         }else{
             echo '删除数据需指定条件';
-            die();
-        }
-    }
-
-    //自增
-    public function setInc($field,$step=1){
-        if($this->_where){
-            $update=$field.'='.$field.'+'.$step;
-            $sql="update {$this->_table} set $update {$this->_where};";
-            return $this->exec($sql,$this->_param);
-        }else{
-            echo '保存数据需指定条件';
-            die();
-        }
-    }
-
-    //自减
-    public function setDec($field,$step=1){
-        if($this->_where){
-            $update=$field.'='.$field.'-'.$step;
-            $sql="update {$this->_table} set $update {$this->_where};";
-            return $this->exec($sql,$this->_param);
-        }else{
-            echo '保存数据需指定条件';
             die();
         }
     }
@@ -205,14 +197,17 @@ class Mysql
     public function query($sql,$param=[]){
         if($this->_debug){
             echo "<pre>";
-            echo $sql;
-            echo "<br>";
-            print_r($param);
+            echo $this->debugSql();
+            $this->clearParam();
             die();
         }else{
             $pre=$this->_pdo->prepare($sql);
+            if(!$pre){
+                $this->_error();
+            }
             $pre->execute($param);
             if($this->_error()){
+                $this->clearParam();
                 return $pre->fetchAll(\PDO::FETCH_ASSOC);
             }
         }
@@ -222,14 +217,17 @@ class Mysql
     public function exec($sql,$param=[]){
         if($this->_debug){
             echo "<pre>";
-            echo $sql;
-            echo "<br>";
-            print_r($param);
+            echo $this->debugSql();
+            $this->clearParam();
             die();
         }else{
             $pre=$this->_pdo->prepare($sql);
+            if(!$pre){
+                $this->_error();
+            }
             $res=$pre->execute($param);
             if($this->_error()){
+                $this->clearParam();
                 return $res;
             }
         }
@@ -252,10 +250,57 @@ class Mysql
         }
     }
 
+    //清空参数
+    public function clearParam(){
+        $this->_field='*';
+        $this->_where='';
+        $this->_order='';
+        $this->_limit='';
+        $this->_join='';
+        $this->_debug=false;
+        $this->_param=[];
+        $this->_sql='';
+    }
+
+    //自增
+    public function setInc($field,$step=1){
+        if($this->_where){
+            $update=$field.'='.$field.'+'.$step;
+            $this->preWhere();
+            $this->_sql="update {$this->_table} set $update {$this->_where};";
+            return $this->exec($this->_sql,$this->_param);
+        }else{
+            echo '保存数据需指定条件';
+            die();
+        }
+    }
+
+    //自减
+    public function setDec($field,$step=1){
+        if($this->_where){
+            $update=$field.'='.$field.'-'.$step;
+            $this->preWhere();
+            $this->_sql="update {$this->_table} set $update {$this->_where};";
+            return $this->exec($this->_sql,$this->_param);
+        }else{
+            echo '保存数据需指定条件';
+            die();
+        }
+    }
+    
+    //预处理where条件
+    protected function preWhere(){
+        if($this->_where){
+            $this->_where='where'.trim($this->_where,'and');
+        }
+        return $this;
+    }
+
     //查询
     protected function _query(){
-        $sql="select {$this->_field} from {$this->_table} {$this->_join} {$this->_where} {$this->_order} {$this->_limit}";
-        return $this->query($sql,$this->_param);
+        $this->preWhere();
+        $this->_sql="select {$this->_field} from {$this->_table} {$this->_join} {$this->_where} {$this->_order} {$this->_limit}";
+        return $this->query($this->_sql,$this->_param);
     }
 
     //错误处理
@@ -266,9 +311,19 @@ class Mysql
             echo '<pre>';
             $error_msg=$this->_pdo->errorInfo()[2];
             $e=new \Exception($error_msg);
-            echo $error_msg.'<br>'.$e->getTrace()[2]['file'].' In line '.$e->getTrace()[2]['line'];
+            echo '<h2>'.$error_msg.'</h2>';
+            echo '<h2>'.$e->getTrace()[2]['file'].' In line '.$e->getTrace()[2]['line'].'</h2>';
+            echo '<h2>SQL 语句:'.$this->debugSql().'</h2>';
             die();
         }
     }
 
+    //生成调试sql
+    protected function debugSql(){
+        $res=$this->_sql;
+        foreach ($this->_param as $k => $v) {
+            $res=str_replace(':'.$k,'"'.$v.'"',$res);
+        }
+        return $res;
+    }
 }

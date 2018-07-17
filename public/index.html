@@ -5,7 +5,7 @@
 	<meta charset="UTF-8">
 	<link href="https://cdn.bootcss.com/normalize/8.0.0/normalize.min.css" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/element-ui/2.3.6/theme-chalk/index.css">
-	<link rel="stylesheet" type="text/css" href="/css/index.css">
+	<link rel="stylesheet" type="text/css" href="./css/index.css">
 	<link href="https://cdn.bootcss.com/prism/1.14.0/themes/prism.min.css" rel="stylesheet">
 	<link href="https://cdn.bootcss.com/prism/1.14.0/themes/prism-okaidia.min.css" rel="stylesheet">
 	<script src="https://cdn.bootcss.com/vue/2.5.16/vue.min.js"></script>
@@ -18,96 +18,182 @@
 <body>
 	<div id="app">
 		<header>
-			<el-menu
-				:default-active="'1'"
-				class="title"
-				mode="horizontal"
-				background-color="#333"
-				text-color="#ddd"
-				active-text-color="#ffd04b">
-				<el-menu-item index="0">PHP片段</el-menu-item>
-			</el-menu>
+			<div class="title">
+				<div style="float:left">PHP片段</div>
+				<el-input class="search" placeholder="请输入内容" v-model="kw" @keyup.native.enter="get">
+					<i slot="prefix" class="el-icon-search"></i>
+				</el-input>
+				<el-button v-if="user.username" class="add-snip" style="float:left" size="medium" type="primary" @click="add">新增片段</el-button>
+				<div v-if="!user.username" style="float:right" @click="login">登录</div>
+				<div v-if="user.username" style="float:right">{{user.username}} | <span @click="logout">退出登录</span></div>
+			</div>
 		</header>
 		<div class="main">
-			<el-card class="box-card">
+			<el-card class="box-card" v-for="(v,index) in lists" :key="v.id">
 			  <div slot="header" class="clearfix">
-			    <span class="name">{{one.name}}</span>
-			    <el-button size="medium" type="primary" round style="float: right;margin-left:20px" type="text">编辑</el-button>
-			    <el-badge :value="8" class="item" style="float: right;margin-left:20px">
-				    <el-button size="medium" type="primary" round type="text">收藏</el-button>
+			    <span class="name" @click="show(v)">{{v.name}}</span>
+			    <el-button size="medium" type="primary" v-if="user.id==v.user_id" round style="float: right;margin-left:20px" type="text" @click="edit(v)">编辑</el-button>
+			    <el-badge :value="v.used" class="item" style="float: right;">
+				    <el-button size="medium" type="primary" round type="text" class="copy-btn" :data-clipboard-text="v.code" :data-id="v.id">复制代码</el-button>
 			    </el-badge>
-			    <el-badge :value="one.used" class="item" style="float: right;">
-				    <el-button size="medium" type="primary" round type="text" class="copy-btn" :data-clipboard-text="one.code">复制代码</el-button>
-			    </el-badge>
-			    <br>
-			    <div class="small-info">
-				    <el-tag size="small" v-for="v in one.tag">{{v}}</el-tag>
-				    <span class="time">更新时间:{{one.updated_at}}</span>
-			    </div>
 			  </div>
-				<div class="desc">{{one.desc}}</div>
-				<div>
-				    <el-table
-				      :data="one.param"
-				      border
-				      style="width: 100%">
-				      <el-table-column
-				        prop="key"
-				        label="参数名称"
-				        width="100">
-				      </el-table-column>
-				      <el-table-column
-				        prop="value"
-				        label="参数值"
-				        width="200">
-				      </el-table-column>
-				      <el-table-column
-				        prop="desc"
-				        label="备注">
-				      </el-table-column>
+				<div class="desc" @click="show(v)">{{v.desc}}</div>
+				<div v-show="v.show">
+				    <el-table :data="v.param" border style="width: 100%">
+				      <el-table-column prop="key" label="参数名称" width="100"></el-table-column>
+				      <el-table-column prop="value" label="参数值" width="200"></el-table-column>
+				      <el-table-column prop="desc" label="备注"></el-table-column>
 				    </el-table>
 				</div>
-				<div @keyup.enter="usedInc">
-					<pre id="code">
-<code>{{one.code}}</code>
+				<div @keyup.enter="usedInc" v-show="v.show">
+					<pre class="code">
+<code>{{v.code}}</code>
 					</pre>
+				</div>
+				<div @click="show(v)">
+					<el-button v-if="v.show==1" size="mini" type="primary" icon="el-icon-arrow-up">收起</el-button>
+					<el-button v-if="v.show==0" size="mini" type="primary" icon="el-icon-arrow-down">展开</el-button>
+					<el-tag size="medium" v-for="vo in v.tag">{{vo}}</el-tag>
+					<span class="time">更新时间:{{v.updated_at}}</span>
 				</div>
 			</el-card>
 		</div>
 		
+		<!-- 编辑弹框 -->
+		<el-dialog width="1200px" :visible.sync="showEditForm">
+			<el-form :model="editForm" label-position="right" label-width="80px">
+				<el-form-item label="名称">
+					<el-input v-model="editForm.name"></el-input>
+				</el-form-item>
+				<el-form-item label="描述">
+					<el-input type="textarea" :rows="3" placeholder="请输入描述" v-model="editForm.desc">
+					</el-input>
+				</el-form-item>
+				<el-form-item label="标签">
+					<el-tag :key="v" v-for="v in editForm.tag" closable :disable-transitions="false" @close="delTag(v)">
+						{{v}}
+					</el-tag>
+					<el-input class="input-new-tag" v-if="tagInputVisible" v-model="tagInputValue" ref="saveTagInput" size="small" @keyup.enter.native="addTag"
+					 @blur="addTag">
+					</el-input>
+					<el-button v-else class="button-new-tag" size="small" @click="showInput">+ 添加</el-button>
+				</el-form-item>
+				<el-form-item label="参数">
+					<el-table :data="editForm.param" border style="width: 100%">
+						<el-table-column label="参数名称" width="120">
+							<template slot-scope="scope">
+								<el-input v-model="scope.row.key"></el-input>
+							</template>
+						</el-table-column>
+						<el-table-column label="参数值" width="200">
+							<template slot-scope="scope">
+								<el-input v-model="scope.row.value"></el-input>
+							</template>
+						</el-table-column>
+						<el-table-column prop="desc" label="备注">
+							<template slot-scope="scope">
+								<el-input v-model="scope.row.desc"></el-input>
+							</template>
+						</el-table-column>
+						</el-table-column>
+						<el-table-column label="操作" width="200">
+							<template slot-scope="scope">
+								<el-button size="mini" type="danger" @click="delParam(scope.row)">删除</el-button>
+								<el-button size="mini" type="primary" @click="addParam(scope.row)">添加</el-button>
+							</template>
+						</el-table-column>
+					</el-table>
+				</el-form-item>
+				<el-form-item label="代码">
+					<el-input type="textarea" :rows="10" placeholder="请输入代码" v-model="editForm.code">
+					</el-input>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button type="primary" @click="submitEdit">确定</el-button>
+				<el-button type="default" @click="showEditForm=false">取消</el-button>
+			</div>
+		</el-dialog>
+
 		<!-- 登录弹框 -->
-		<el-dialog 
-			title="登录" 
-			width="30%" 
-			:visible.sync="showLoginForm" 
-			:close-on-press-escape="false"
-			:show-close="false"
-			:close-on-click-modal="false">
-			<el-form :model="form">
+		<el-dialog title="登录" width="30%" :visible.sync="showLoginForm">
+			<el-form :model="loginFormData">
 				<el-form-item label="" :label-width="300">
-					<el-input v-model="form.username" auto-complete="off">
+					<el-input v-model="loginFormData.username">
 						<template slot="prepend">用户名</template>
 					</el-input>
 				</el-form-item>
 				<el-form-item label="" :label-width="300">
-					<el-input v-model="form.password" type="password" auto-complete="off">
+					<el-input v-model="loginFormData.password" type="password">
 						<template slot="prepend">密&nbsp;&nbsp;&nbsp;码</template>
 					</el-input>
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
-				<el-button type="primary">确 定</el-button>
+				<el-button type="primary" @click="loginSubmit">确 定</el-button>
+				<el-button type="default" @click="changeLogin">注 册</el-button>
 			</div>
 		</el-dialog>
+		</el-container>
+
+		<!-- 注册弹框 -->
+		<el-dialog title="注册" width="30%" :visible.sync="showRegForm">
+			<el-form :model="regFormData">
+				<el-form-item label="" :label-width="300">
+					<el-input v-model="regFormData.username">
+						<template slot="prepend">用户名</template>
+					</el-input>
+				</el-form-item>
+				<el-form-item label="" :label-width="300">
+					<el-input v-model="regFormData.password" type="password">
+						<template slot="prepend">密&nbsp;&nbsp;&nbsp;码</template>
+					</el-input>
+				</el-form-item>
+				</el-form-item>
+				<el-form-item label="" :label-width="300">
+					<el-input v-model="regFormData.confirm_password" type="password">
+						<template slot="prepend">确认密码</template>
+					</el-input>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button type="primary" @click="regSubmit">确 定</el-button>
+				<el-button type="default" @click="changeLogin">登 录</el-button>
+			</div>
+		</el-dialog>
+		
 	</div>
 	<script>
 		var vm=new Vue({
 			el:'#app',
 			data:{
 				showLoginForm:false,
-				form:{},
-				one:{},
-				copied:false
+				lists:{},
+				copied:false,
+
+				//编辑框
+				showEditForm:false,
+				editForm:{},
+
+				//用户信息
+				user: {
+					username: '',
+					token: ''
+				},
+
+				//登录
+				showLoginForm: false,
+				loginFormData: { username: '', password: '' },
+
+				//注册
+				showRegForm: false,
+				regFormData: { username: '', password: '', confirm_password: '' },
+
+				//标签编辑
+				tagInputVisible:false,
+				tagInputValue:'',
+
+				kw:''
 			},
 			created(){
 				//初始化axios
@@ -127,21 +213,35 @@
 				axios.interceptors.response.use(function (response) {
 					if (response.data.code == 200) {
 						return response.data
-					}else{
-						return Promise.reject(response.data)
+					} else {
+						if (response.data.message) {
+							vm.msg(response.data.message)
+						} else {
+							vm.msg(response.data)
+						}
+						return response.data;
 					}
 				})
 
+				//获取用户登录信息
+				if (localStorage.getItem('user')) {
+					this.user = Qs.parse(localStorage.getItem('user'))
+					axios.defaults.headers['Token'] = this.user.token
+				}
+
 				this.get();
 				this.clipboard();
-
 			},
 			methods:{
 				//获取数据
 				get(){
-					axios.get('/index/one').then(res=>{
+					axios.get('/index/lists?kw='+this.kw).then(res=>{
 						if(res.data){
-							this.one=res.data;
+							for(var i=0;i<res.data.length;i++){
+								res.data[i].show=false;
+								res.data[i].copied=false;
+							}
+							this.lists=res.data;
 							this.prism();
 						}
 					})
@@ -156,8 +256,9 @@
 				clipboard(){
 					var clipboard = new ClipboardJS('.copy-btn');
 					clipboard.on('success', function(e) {
+						var id=e.trigger.attributes['data-id'].value
 					    vm.msg('复制成功!');
-					    vm.usedInc();
+					    vm.usedInc(id);
 					});
 
 					clipboard.on('error', function(e) {
@@ -166,14 +267,110 @@
 				},
 
 				//使用量+1
-				usedInc(){
-					if(!this.copied){
-						this.copied=true;
-						this.one.used++;
-						axios.post('/index/usedInc',{id:1},res=>{
-							console.log(res)
-						})						
+				usedInc(id){
+					for(var i=0;i<this.lists.length;i++){
+						if(!this.lists[i].copied&&this.lists[i].id==id){
+							this.lists[i].copied = true;
+							this.lists[i].used++;
+							axios.post('/index/usedInc', { id: id }, res => {
+								console.log(res)
+							})	
+						}
 					}
+				},
+
+				//添加&&编辑
+				add(){
+					this.showEditForm = true;
+					this.editForm = {name:'',desc:'',tag:[],param:[{key:'',value:'',desc:''}],code:''}
+				},
+				edit(v){
+					this.showEditForm=true;
+					this.editForm=v
+				},
+				submitEdit(){
+					axios.post('/index/edit',this.editForm).then(res=>{
+						if(res.code==200){
+							this.get();
+							this.msg('保存成功')
+							this.showEditForm = false;
+						}
+					})
+				},
+
+				//代码显示隐藏
+				show(v){
+					v.show=!v.show;
+				},
+
+				//登录
+				login() {
+					this.showLoginForm = true;
+				},
+
+				//提交登录
+				loginSubmit() {
+					axios.post('/login/login', this.loginFormData).then(res => {
+						if (res.data) {
+							this.user = res.data
+							axios.defaults.headers['Token'] = this.user.token
+							localStorage.setItem('user', Qs.stringify(this.user))
+							this.showLoginForm = false
+						}
+					})
+				},
+
+				//切换注册登录
+				changeLogin() {
+					this.showRegForm = !this.showRegForm
+					this.showLoginForm = !this.showLoginForm
+				},
+
+				//提交注册
+				regSubmit() {
+					axios.post('/login/reg', this.regFormData).then(res => {
+						if (res.data) {
+							this.user = res.data
+							axios.defaults.headers['Token'] = this.user.token
+							localStorage.setItem('user', Qs.stringify(this.user))
+							this.showRegForm = false
+						}
+					})
+				},
+
+				//退出登录
+				logout() {
+					this.user = {}
+					axios.defaults.headers['Token'] = ''
+					this.showLoginForm = true
+					localStorage.setItem('user', '')
+				},
+
+				//标签编辑
+				delTag(tag) {
+					this.editForm.tag.splice(this.editForm.tag.indexOf(tag), 1);
+				},
+				showInput() {
+					this.tagInputVisible = true;
+					this.$nextTick(_ => {
+						this.$refs.saveTagInput.$refs.input.focus();
+					});
+				},
+				addTag() {
+					let tagInputValue = this.tagInputValue;
+					if (tagInputValue) {
+						this.editForm.tag.push(tagInputValue);
+					}
+					this.tagInputVisible = false;
+					this.tagInputValue = '';
+				},
+
+				//参数编辑
+				addParam(v){
+					this.editForm.param.splice(this.editForm.param.indexOf(v)+1,0,{key:'',value:'',desc:''});
+				},
+				delParam(v){
+					this.editForm.param.splice(this.editForm.param.indexOf(v), 1);
 				},
 
 				//高亮代码
@@ -215,10 +412,13 @@
 					    });
 					}
 
-					var block = document.getElementById('code')
-					block.className="language-php"
+					var block = document.getElementsByTagName('pre')
+					
 					setTimeout(()=>{
-						Prism.highlightElement(block);
+						for(var i=0;i<block.length;i++){
+							block[i].className= "language-php"
+							Prism.highlightElement(block[i]);
+						}
 					},0)
 					
 				}

@@ -16,10 +16,6 @@ header{
 	margin:0 auto;
 }
 
-.title .el-menu-item{
-	font-size:18px;
-}
-
 .el-table__header-wrapper .el-checkbox__inner{
 	display:none;
 }
@@ -31,7 +27,6 @@ header{
 .main{
 	width:1200px;
 	margin:0 auto;
-	background:#f6f6f6;
 	min-height:600px;
 }
 
@@ -43,22 +38,49 @@ header{
 	margin-top:10px;
 }
 
-.small-info .el-tag{
+.el-tag{
 	margin-right:5px;
 }
 
-.small-info .time{
+.time{
 	color:#888;
 }
 
-.small-info .used{
-	color:#888;
-}
 .desc{
 	font-size:18px;
 	color:#555;
 	margin-bottom:10px;
 }
 .box-card{
-	margin:10px 0 50px 0;
+	margin:10px 0 10px 0;
+}
+
+.el-tag + .el-tag {
+	margin-left: 10px;
+}
+.button-new-tag {
+	margin-left: 10px;
+	height: 32px;
+	line-height: 30px;
+	padding-top: 0;
+	padding-bottom: 0;
+}
+.input-new-tag {
+	width: 90px;
+	margin-left: 10px;
+	vertical-align: bottom;
+}
+.add-snip{
+	margin:13px 0 0 20px;
+}
+.search{
+	width:200px;
+	float:left;
+	margin:1px 0 0 20px;
+	height:36px;
+}
+.search .el-input__inner{
+    height: 36px;
+	line-height: 36px;
+	border-radius: 18px;
 }
