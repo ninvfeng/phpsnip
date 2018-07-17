@@ -17,10 +17,15 @@ class Index{
     //获取数据
     public function lists(){
         $kw=get('kw');
+        $type=get('type');
+        if($type==1){
+            $join='collection on collection.snippet_id=snippet.id';
+            $where['collection.user_id']=userid();
+        }
         if($kw){
-            $data=db('snippet')->where('name like :kw',['kw'=>'%'.$kw.'%'])->order('used desc')->select();
+            $data=db('snippet')->join($join)->where($where)->where('name like :kw',['kw'=>'%'.$kw.'%'])->order('used desc')->select();
         }else{
-            $data=db('snippet')->order('used desc')->select();
+            $data=db('snippet')->field('snippet.*')->join($join)->where($where)->order('used desc')->select();
         }
         
         foreach($data as $k => $v){
@@ -86,6 +91,22 @@ class Index{
             }
         }
 
+        json_response($res);
+    }
+
+    //收藏
+    public function collect(){
+        $snippet_id=post('id','require','未选择片段');
+        if(!$res=db('collection')->where(['snippet_id'=>$snippet_id,'user_id'=>userid()])->find()){
+            $res=db('collection')->insert(['snippet_id'=>$snippet_id,'user_id'=>userid(),'created_at'=>date('Y-m-d H:i:s')]);
+        }
+        json_response($res);
+    }
+
+    //取消收藏
+    public function cancelCollect(){
+        $snippet_id=post('id','require','未选择片段');
+        $res=db('collection')->where(['snippet_id'=>$snippet_id,'user_id'=>userid()])->delete();
         json_response($res);
     }
 }

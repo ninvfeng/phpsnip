@@ -16,20 +16,23 @@ class Hook{
 			'login/reg',
 		];
 
-		//非登陆接口验证token
-		if(!in_array(app()->route['path'],$list)){
-			$token=$_SERVER['HTTP_TOKEN'];
-			if(!$token){
-				json_response(null,'请登陆',403);
-			}
+		//存在token获取用户信息
+		$token=$_SERVER['HTTP_TOKEN'];
+		if($token){
 			$arr=explode('.',$token);
 			$key=$arr[0].'.'.$arr[1];
 			$user=cache($key);
-			if(!$user){
-				json_response(null,'登陆已过期，请从新登陆',403);
+			if($user['token']==$token){
+				data('user',$user);
 			}
-			data('user',$user);
 		}
+
+
+		//非登陆接口验证token
+		if(!in_array(app()->route['path'],$list)&&!data('user')){
+			json_response(null,'请登录',403);
+		}
+		
 	}
 
 	//控制器方法执行后

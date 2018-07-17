@@ -63,6 +63,9 @@ class Mysql
 
     //条件
     public function where($where,$param=[]){
+        if(!$where){
+            return $this;
+        }
         if($param){
             $this->_param=array_merge($this->_param,$param);
         }
@@ -96,7 +99,9 @@ class Mysql
 
     //join
     public function join($join){
-
+        if(!$join){
+            return $this;
+        }
         //语句中不包含join时自动添加left join
         if(stripos($join,'join')===false){
             $join='left join '.$join;

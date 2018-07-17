@@ -19,20 +19,23 @@
 	<div id="app">
 		<header>
 			<div class="title">
-				<div style="float:left">PHP片段</div>
+				<div style="float:left" @click="changeType(0)">PHP片段</div>
 				<el-input class="search" placeholder="请输入内容" v-model="kw" @keyup.native.enter="get">
 					<i slot="prefix" class="el-icon-search"></i>
 				</el-input>
-				<el-button v-if="user.username" class="add-snip" style="float:left" size="medium" type="primary" @click="add">新增片段</el-button>
+				<el-button class="add-snip" style="float:left" size="medium" type="primary" @click="add">新增片段</el-button>
 				<div v-if="!user.username" style="float:right" @click="login">登录</div>
 				<div v-if="user.username" style="float:right">{{user.username}} | <span @click="logout">退出登录</span></div>
+				<el-button v-if="user.username" class="add-snip" style="float:right;margin-right:20px;" size="medium" type="primary" @click="changeType(1)">收藏夹</el-button>
 			</div>
 		</header>
 		<div class="main">
 			<el-card class="box-card" v-for="(v,index) in lists" :key="v.id">
 			  <div slot="header" class="clearfix">
 			    <span class="name" @click="show(v)">{{v.name}}</span>
-			    <el-button size="medium" type="primary" v-if="user.id==v.user_id" round style="float: right;margin-left:20px" type="text" @click="edit(v)">编辑</el-button>
+				<el-button size="medium" type="primary" v-if="user.id==v.user_id" round style="float: right;margin-left:20px" type="text" @click="edit(v)">编辑</el-button>
+				<el-button v-if="type==0" size="medium" type="primary" round style="float: right;margin-left:20px" type="text" @click="collect(v)">收藏</el-button>
+				<el-button v-if="type==1" size="medium" type="danger" round style="float: right;margin-left:20px" type="text" @click="cancelCollect(v)">取消收藏</el-button>
 			    <el-badge :value="v.used" class="item" style="float: right;">
 				    <el-button size="medium" type="primary" round type="text" class="copy-btn" :data-clipboard-text="v.code" :data-id="v.id">复制代码</el-button>
 			    </el-badge>
@@ -192,8 +195,12 @@
 				//标签编辑
 				tagInputVisible:false,
 				tagInputValue:'',
+				
+				//搜索
+				kw:'',
 
-				kw:''
+				//显示类型 0:全部 1:收藏夹 2:我添加的
+				type:0
 			},
 			created(){
 				//初始化axios
@@ -235,7 +242,7 @@
 			methods:{
 				//获取数据
 				get(){
-					axios.get('/index/lists?kw='+this.kw).then(res=>{
+					axios.get('/index/lists?kw='+this.kw+'&type='+this.type).then(res=>{
 						if(res.data){
 							for(var i=0;i<res.data.length;i++){
 								res.data[i].show=false;
@@ -281,8 +288,12 @@
 
 				//添加&&编辑
 				add(){
-					this.showEditForm = true;
-					this.editForm = {name:'',desc:'',tag:[],param:[{key:'',value:'',desc:''}],code:''}
+					if(!this.user.username){
+						this.showLoginForm=true;
+					}else{
+						this.showEditForm = true;
+						this.editForm = {name:'',desc:'',tag:[],param:[{key:'',value:'',desc:''}],code:''}
+					}
 				},
 				edit(v){
 					this.showEditForm=true;
@@ -371,6 +382,38 @@
 				},
 				delParam(v){
 					this.editForm.param.splice(this.editForm.param.indexOf(v), 1);
+				},
+
+				//收藏
+				collect(v){
+					if (!this.user.username) {
+						this.showLoginForm = true;
+					} else {
+						axios.post('/index/collect',{id:v.id}).then(res=>{
+							if(res.code==200){
+								this.msg("收藏成功");
+							}
+						})
+					}
+				},
+
+				//取消收藏
+				cancelCollect(v){
+					if (!this.user.username) {
+						this.showLoginForm = true;
+					} else {
+						axios.post('/index/cancelCollect',{id:v.id}).then(res=>{
+							if(res.code==200){
+								this.msg("取消收藏成功");
+							}
+						})
+					}
+				},
+
+				//修改显示类型
+				changeType(type){
+					this.type=type;
+					this.get();
 				},
 
 				//高亮代码
