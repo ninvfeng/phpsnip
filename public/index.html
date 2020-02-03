@@ -1,20 +1,23 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title>PHP片段</title>
 	<meta charset="UTF-8">
-	<link href="https://cdn.bootcss.com/normalize/8.0.0/normalize.min.css" rel="stylesheet">
-	<link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/element-ui/2.3.6/theme-chalk/index.css">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css"
+		href="https://cdnjs.cloudflare.com/ajax/libs/element-ui/2.3.6/theme-chalk/index.css">
 	<link rel="stylesheet" type="text/css" href="./css/index.css?v=0.1.0">
-	<link href="https://cdn.bootcss.com/prism/1.14.0/themes/prism.min.css" rel="stylesheet">
-	<link href="https://cdn.bootcss.com/prism/1.14.0/themes/prism-okaidia.min.css" rel="stylesheet">
-	<script src="https://cdn.bootcss.com/vue/2.5.16/vue.min.js"></script>
-	<script src="https://cdn.bootcss.com/element-ui/2.3.7/index.js"></script>
-	<script src="https://cdn.bootcss.com/axios/0.18.0/axios.min.js"></script>
-	<script src="https://cdn.bootcss.com/qs/6.5.2/qs.min.js"></script>
-	<script src="https://cdn.bootcss.com/prism/1.14.0/prism.min.js"></script>
-	<script src="https://cdn.bootcss.com/clipboard.js/2.0.1/clipboard.min.js"></script>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.14.0/themes/prism.min.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.14.0/themes/prism-okaidia.min.css" rel="stylesheet">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/element-ui/2.3.7/index.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.5.2/qs.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.14.0/prism.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.1/clipboard.min.js"></script>
 </head>
+
 <body>
 	<div id="app">
 		<header>
@@ -23,30 +26,37 @@
 				<el-input class="search" placeholder="请输入内容" v-model="kw" @keyup.native.enter="get">
 					<i slot="prefix" class="el-icon-search"></i>
 				</el-input>
-				<el-button class="add-snip" style="float:left" size="medium" type="primary" @click="add">新增片段</el-button>
+				<el-button class="add-snip" style="float:left" size="medium" type="primary" @click="add">新增片段
+				</el-button>
 				<div v-if="!user.username" style="float:right" @click="login">登录</div>
-				<div v-if="user.username" style="float:right">{{user.username}} | <span @click="logout">退出登录</span></div>
-				<el-button v-if="user.username" class="add-snip" style="float:right;margin-right:20px;" size="medium" type="primary" @click="changeType(1)">收藏夹</el-button>
+				<div v-if="user.username" style="float:right">{{user.username}} | <span @click="logout">退出登录</span>
+				</div>
+				<el-button v-if="user.username" class="add-snip" style="float:right;margin-right:20px;" size="medium"
+					type="primary" @click="changeType(1)">收藏夹</el-button>
 			</div>
 		</header>
 		<div class="main">
 			<el-card class="box-card" v-for="(v,index) in lists" :key="v.id">
-			  <div slot="header" class="clearfix">
-			    <span class="name" @click="show(v)">{{v.name}}</span>
-				<el-button size="medium" type="primary" v-if="user.id==v.user_id" round style="float: right;margin-left:20px" type="text" @click="edit(v)">编辑</el-button>
-				<el-button v-if="type==0" size="medium" type="primary" round style="float: right;margin-left:20px" type="text" @click="collect(v)">收藏</el-button>
-				<el-button v-if="type==1" size="medium" type="danger" round style="float: right;margin-left:20px" type="text" @click="cancelCollect(v)">取消收藏</el-button>
-			    <el-badge :value="v.used" class="item" style="float: right;">
-				    <el-button size="medium" type="primary" round type="text" class="copy-btn" :data-clipboard-text="v.code" :data-id="v.id">复制代码</el-button>
-			    </el-badge>
-			  </div>
+				<div slot="header" class="clearfix">
+					<span class="name" @click="show(v)">{{v.name}}</span>
+					<el-button size="medium" type="primary" v-if="user.id==v.user_id" round
+						style="float: right;margin-left:20px" type="text" @click="edit(v)">编辑</el-button>
+					<el-button v-if="type==0" size="medium" type="primary" round style="float: right;margin-left:20px"
+						type="text" @click="collect(v)">收藏</el-button>
+					<el-button v-if="type==1" size="medium" type="danger" round style="float: right;margin-left:20px"
+						type="text" @click="cancelCollect(v)">取消收藏</el-button>
+					<el-badge :value="v.used" class="item" style="float: right;">
+						<el-button size="medium" type="primary" round type="text" class="copy-btn"
+							:data-clipboard-text="v.code" :data-id="v.id">复制代码</el-button>
+					</el-badge>
+				</div>
 				<div class="desc" @click="show(v)">{{v.desc}}</div>
 				<div v-show="v.show">
-				    <el-table :data="v.param" border style="width: 100%">
-				      <el-table-column prop="key" label="参数名称" width="100"></el-table-column>
-				      <el-table-column prop="value" label="参数值" width="200"></el-table-column>
-				      <el-table-column prop="desc" label="备注"></el-table-column>
-				    </el-table>
+					<el-table :data="v.param" border style="width: 100%">
+						<el-table-column prop="key" label="参数名称" width="100"></el-table-column>
+						<el-table-column prop="value" label="参数值" width="200"></el-table-column>
+						<el-table-column prop="desc" label="备注"></el-table-column>
+					</el-table>
 				</div>
 				<div @keyup.enter="usedInc" v-show="v.show">
 					<pre class="code">
@@ -61,7 +71,7 @@
 				</div>
 			</el-card>
 		</div>
-		
+
 		<!-- 编辑弹框 -->
 		<el-dialog width="1200px" :visible.sync="showEditForm">
 			<el-form :model="editForm" label-position="right" label-width="80px">
@@ -76,8 +86,8 @@
 					<el-tag :key="v" v-for="v in editForm.tag" closable :disable-transitions="false" @close="delTag(v)">
 						{{v}}
 					</el-tag>
-					<el-input class="input-new-tag" v-if="tagInputVisible" v-model="tagInputValue" ref="saveTagInput" size="small" @keyup.enter.native="addTag"
-					 @blur="addTag">
+					<el-input class="input-new-tag" v-if="tagInputVisible" v-model="tagInputValue" ref="saveTagInput"
+						size="small" @keyup.enter.native="addTag" @blur="addTag">
 					</el-input>
 					<el-button v-else class="button-new-tag" size="small" @click="showInput">+ 添加</el-button>
 				</el-form-item>
@@ -164,19 +174,19 @@
 				<el-button type="default" @click="changeLogin">登 录</el-button>
 			</div>
 		</el-dialog>
-		
+
 	</div>
 	<script>
-		var vm=new Vue({
-			el:'#app',
-			data:{
-				showLoginForm:false,
-				lists:{},
-				copied:false,
+		var vm = new Vue({
+			el: '#app',
+			data: {
+				showLoginForm: false,
+				lists: {},
+				copied: false,
 
 				//编辑框
-				showEditForm:false,
-				editForm:{},
+				showEditForm: false,
+				editForm: {},
 
 				//用户信息
 				user: {
@@ -193,16 +203,16 @@
 				regFormData: { username: '', password: '', confirm_password: '' },
 
 				//标签编辑
-				tagInputVisible:false,
-				tagInputValue:'',
-				
+				tagInputVisible: false,
+				tagInputValue: '',
+
 				//搜索
-				kw:'',
+				kw: '',
 
 				//显示类型 0:全部 1:收藏夹 2:我添加的
-				type:0
+				type: 0
 			},
-			created(){
+			created() {
 				//初始化axios
 				axios.defaults.baseURL = ''
 				axios.defaults.headers['Content-Type'] = 'application/x-www-form-urlencoded'
@@ -239,69 +249,69 @@
 				this.get();
 				this.clipboard();
 			},
-			methods:{
+			methods: {
 				//获取数据
-				get(){
-					axios.get('/index/lists?kw='+this.kw+'&type='+this.type).then(res=>{
-						if(res.data){
-							for(var i=0;i<res.data.length;i++){
-								res.data[i].show=false;
-								res.data[i].copied=false;
+				get() {
+					axios.get('/index/lists?kw=' + this.kw + '&type=' + this.type).then(res => {
+						if (res.data) {
+							for (var i = 0; i < res.data.length; i++) {
+								res.data[i].show = false;
+								res.data[i].copied = false;
 							}
-							this.lists=res.data;
+							this.lists = res.data;
 							this.prism();
 						}
 					})
 				},
 
 				//公共消息提示
-				msg(str){
+				msg(str) {
 					ELEMENT.Notification({ title: str })
 				},
 
 				//复制代码到剪切板
-				clipboard(){
+				clipboard() {
 					var clipboard = new ClipboardJS('.copy-btn');
-					clipboard.on('success', function(e) {
-						var id=e.trigger.attributes['data-id'].value
-					    vm.msg('复制成功!');
-					    vm.usedInc(id);
+					clipboard.on('success', function (e) {
+						var id = e.trigger.attributes['data-id'].value
+						vm.msg('复制成功!');
+						vm.usedInc(id);
 					});
 
-					clipboard.on('error', function(e) {
-					    vm.msg('复制失败, 请手动复制代码!');
+					clipboard.on('error', function (e) {
+						vm.msg('复制失败, 请手动复制代码!');
 					});
 				},
 
 				//使用量+1
-				usedInc(id){
-					for(var i=0;i<this.lists.length;i++){
-						if(!this.lists[i].copied&&this.lists[i].id==id){
+				usedInc(id) {
+					for (var i = 0; i < this.lists.length; i++) {
+						if (!this.lists[i].copied && this.lists[i].id == id) {
 							this.lists[i].copied = true;
 							this.lists[i].used++;
 							axios.post('/index/usedInc', { id: id }, res => {
 								console.log(res)
-							})	
+							})
 						}
 					}
 				},
 
 				//添加&&编辑
-				add(){
-					if(!this.user.username){
-						this.showLoginForm=true;
-					}else{
+				add() {
+					if (!this.user.username) {
+						this.showLoginForm = true;
+					} else {
 						this.showEditForm = true;
-						this.editForm = {name:'',desc:'',tag:[],param:[{key:'',value:'',desc:''}],code:''}
+						this.editForm = { name: '', desc: '', tag: [], param: [{ key: '', value: '', desc: '' }], code: '' }
 					}
 				},
-				edit(v){
-					this.showEditForm=true;
-					this.editForm=v
+				edit(v) {
+					this.showEditForm = true;
+					this.editForm = v
 				},
-				submitEdit(){
-					axios.post('/index/edit',this.editForm).then(res=>{
-						if(res.code==200){
+				submitEdit() {
+					axios.post('/index/edit', this.editForm).then(res => {
+						if (res.code == 200) {
 							this.get();
 							this.msg('保存成功')
 							this.showEditForm = false;
@@ -310,8 +320,8 @@
 				},
 
 				//代码显示隐藏
-				show(v){
-					v.show=!v.show;
+				show(v) {
+					v.show = !v.show;
 				},
 
 				//登录
@@ -377,20 +387,20 @@
 				},
 
 				//参数编辑
-				addParam(v){
-					this.editForm.param.splice(this.editForm.param.indexOf(v)+1,0,{key:'',value:'',desc:''});
+				addParam(v) {
+					this.editForm.param.splice(this.editForm.param.indexOf(v) + 1, 0, { key: '', value: '', desc: '' });
 				},
-				delParam(v){
+				delParam(v) {
 					this.editForm.param.splice(this.editForm.param.indexOf(v), 1);
 				},
 
 				//收藏
-				collect(v){
+				collect(v) {
 					if (!this.user.username) {
 						this.showLoginForm = true;
 					} else {
-						axios.post('/index/collect',{id:v.id}).then(res=>{
-							if(res.code==200){
+						axios.post('/index/collect', { id: v.id }).then(res => {
+							if (res.code == 200) {
 								this.msg("收藏成功");
 							}
 						})
@@ -398,12 +408,12 @@
 				},
 
 				//取消收藏
-				cancelCollect(v){
+				cancelCollect(v) {
 					if (!this.user.username) {
 						this.showLoginForm = true;
 					} else {
-						axios.post('/index/cancelCollect',{id:v.id}).then(res=>{
-							if(res.code==200){
+						axios.post('/index/cancelCollect', { id: v.id }).then(res => {
+							if (res.code == 200) {
 								this.msg("取消收藏成功");
 							}
 						})
@@ -411,71 +421,72 @@
 				},
 
 				//修改显示类型
-				changeType(type){
-					this.type=type;
+				changeType(type) {
+					this.type = type;
 					this.get();
 				},
 
 				//高亮代码
-				prism(){
+				prism() {
 					/* Kratos Javascript Plus */
 					Prism.languages.php = {
-					    'comment': {
-					        pattern: /(^|[^\\])(\/\*[\w\W]*?\*\/|\/\/.*?(\r?\n|$))/g,
-					        lookbehind: true
-					    },
-					    'deliminator': /(\?>|\?>|<\?php|<\?php)/ig,
-					    'variable': /(\$\w+)\b/ig,
-					    'string': /("|')(\\?.)*?\1/g,
-					    'regex': {
-					        pattern: /(^|[^/])\/(?!\/)(\[.+?]|\\.|[^/\r\n])+\/[gim]{0,3}(?=\s*($|[\r\n,.;})]))/g,
-					        lookbehind: true
-					    },
-					    'keyword': /\b(and|or|xor|array|as|break|case|cfunction|class|const|continue|declare|default|die|do|else|elseif|enddeclare|endfor|endforeach|endif|endswitch|endwhile|extends|for|foreach|function|include|include_once|global|if|new|return|static|switch|use|require|require_once|var|while|abstract|interface|public|implements|extends|private|protected|throw)\b/g,
-					    'function': /\b(abs|acos|acosh|addcslashes|addslashes|array_change_key_case|array_chunk|array_combine|array_count_values|array_diff|array_diff_assoc|array_diff_key|array_diff_uassoc|array_diff_ukey|array_fill|array_filter|array_flip|array_intersect|array_intersect_assoc|array_intersect_key|array_intersect_uassoc|array_intersect_ukey|array_key_exists|array_keys|array_map|array_merge|array_merge_recursive|array_multisort|array_pad|array_pop|array_product|array_push|array_rand|array_reduce|array_reverse|array_search|array_shift|array_slice|array_splice|array_sum|array_udiff|array_udiff_assoc|array_udiff_uassoc|array_uintersect|array_uintersect_assoc|array_uintersect_uassoc|array_unique|array_unshift|array_values|array_walk|array_walk_recursive|atan|atan2|atanh|base64_decode|base64_encode|base_convert|basename|bcadd|bccomp|bcdiv|bcmod|bcmul|bindec|bindtextdomain|bzclose|bzcompress|bzdecompress|bzerrno|bzerror|bzerrstr|bzflush|bzopen|bzread|bzwrite|ceil|chdir|checkdate|checkdnsrr|chgrp|chmod|chop|chown|chr|chroot|chunk_split|class_exists|closedir|closelog|copy|cos|cosh|count|count_chars|date|decbin|dechex|decoct|deg2rad|delete|ebcdic2ascii|echo|empty|end|ereg|ereg_replace|eregi|eregi_replace|error_log|error_reporting|escapeshellarg|escapeshellcmd|eval|exec|exit|exp|explode|extension_loaded|feof|fflush|fgetc|fgetcsv|fgets|fgetss|file_exists|file_get_contents|file_put_contents|fileatime|filectime|filegroup|fileinode|filemtime|fileowner|fileperms|filesize|filetype|floatval|flock|floor|flush|fmod|fnmatch|fopen|fpassthru|fprintf|fputcsv|fputs|fread|fscanf|fseek|fsockopen|fstat|ftell|ftok|getallheaders|getcwd|getdate|getenv|gethostbyaddr|gethostbyname|gethostbynamel|getimagesize|getlastmod|getmxrr|getmygid|getmyinode|getmypid|getmyuid|getopt|getprotobyname|getprotobynumber|getrandmax|getrusage|getservbyname|getservbyport|gettext|gettimeofday|gettype|glob|gmdate|gmmktime|ini_alter|ini_get|ini_get_all|ini_restore|ini_set|interface_exists|intval|ip2long|is_a|is_array|is_bool|is_callable|is_dir|is_double|is_executable|is_file|is_finite|is_float|is_infinite|is_int|is_integer|is_link|is_long|is_nan|is_null|is_numeric|is_object|is_readable|is_real|is_resource|is_scalar|is_soap_fault|is_string|is_subclass_of|is_uploaded_file|is_writable|is_writeable|mkdir|mktime|nl2br|parse_ini_file|parse_str|parse_url|passthru|pathinfo|readlink|realpath|rewind|rewinddir|rmdir|round|str_ireplace|str_pad|str_repeat|str_replace|str_rot13|str_shuffle|str_split|str_word_count|strcasecmp|strchr|strcmp|strcoll|strcspn|strftime|strip_tags|stripcslashes|stripos|stripslashes|stristr|strlen|strnatcasecmp|strnatcmp|strncasecmp|strncmp|strpbrk|strpos|strptime|strrchr|strrev|strripos|strrpos|strspn|strstr|strtok|strtolower|strtotime|strtoupper|strtr|strval|substr|substr_compare)\b/g,
-					    'constant': /\b(__FILE__|__LINE__|__METHOD__|__FUNCTION__|__CLASS__)\b/g,
-					    'boolean': /\b(true|false)\b/g,
-					    'number': /\b-?(0x)?\d*\.?\d+\b/g,
-					    // 'operator': /[-+]{1,2}|!|=?<|=?>|={1,2}|(\&){1,2}|\|?\||\?|\*|\//g,
-					    'punctuation': /[{}[\];(),.:]/g
+						'comment': {
+							pattern: /(^|[^\\])(\/\*[\w\W]*?\*\/|\/\/.*?(\r?\n|$))/g,
+							lookbehind: true
+						},
+						'deliminator': /(\?>|\?>|<\?php|<\?php)/ig,
+						'variable': /(\$\w+)\b/ig,
+						'string': /("|')(\\?.)*?\1/g,
+						'regex': {
+							pattern: /(^|[^/])\/(?!\/)(\[.+?]|\\.|[^/\r\n])+\/[gim]{0,3}(?=\s*($|[\r\n,.;})]))/g,
+							lookbehind: true
+						},
+						'keyword': /\b(and|or|xor|array|as|break|case|cfunction|class|const|continue|declare|default|die|do|else|elseif|enddeclare|endfor|endforeach|endif|endswitch|endwhile|extends|for|foreach|function|include|include_once|global|if|new|return|static|switch|use|require|require_once|var|while|abstract|interface|public|implements|extends|private|protected|throw)\b/g,
+						'function': /\b(abs|acos|acosh|addcslashes|addslashes|array_change_key_case|array_chunk|array_combine|array_count_values|array_diff|array_diff_assoc|array_diff_key|array_diff_uassoc|array_diff_ukey|array_fill|array_filter|array_flip|array_intersect|array_intersect_assoc|array_intersect_key|array_intersect_uassoc|array_intersect_ukey|array_key_exists|array_keys|array_map|array_merge|array_merge_recursive|array_multisort|array_pad|array_pop|array_product|array_push|array_rand|array_reduce|array_reverse|array_search|array_shift|array_slice|array_splice|array_sum|array_udiff|array_udiff_assoc|array_udiff_uassoc|array_uintersect|array_uintersect_assoc|array_uintersect_uassoc|array_unique|array_unshift|array_values|array_walk|array_walk_recursive|atan|atan2|atanh|base64_decode|base64_encode|base_convert|basename|bcadd|bccomp|bcdiv|bcmod|bcmul|bindec|bindtextdomain|bzclose|bzcompress|bzdecompress|bzerrno|bzerror|bzerrstr|bzflush|bzopen|bzread|bzwrite|ceil|chdir|checkdate|checkdnsrr|chgrp|chmod|chop|chown|chr|chroot|chunk_split|class_exists|closedir|closelog|copy|cos|cosh|count|count_chars|date|decbin|dechex|decoct|deg2rad|delete|ebcdic2ascii|echo|empty|end|ereg|ereg_replace|eregi|eregi_replace|error_log|error_reporting|escapeshellarg|escapeshellcmd|eval|exec|exit|exp|explode|extension_loaded|feof|fflush|fgetc|fgetcsv|fgets|fgetss|file_exists|file_get_contents|file_put_contents|fileatime|filectime|filegroup|fileinode|filemtime|fileowner|fileperms|filesize|filetype|floatval|flock|floor|flush|fmod|fnmatch|fopen|fpassthru|fprintf|fputcsv|fputs|fread|fscanf|fseek|fsockopen|fstat|ftell|ftok|getallheaders|getcwd|getdate|getenv|gethostbyaddr|gethostbyname|gethostbynamel|getimagesize|getlastmod|getmxrr|getmygid|getmyinode|getmypid|getmyuid|getopt|getprotobyname|getprotobynumber|getrandmax|getrusage|getservbyname|getservbyport|gettext|gettimeofday|gettype|glob|gmdate|gmmktime|ini_alter|ini_get|ini_get_all|ini_restore|ini_set|interface_exists|intval|ip2long|is_a|is_array|is_bool|is_callable|is_dir|is_double|is_executable|is_file|is_finite|is_float|is_infinite|is_int|is_integer|is_link|is_long|is_nan|is_null|is_numeric|is_object|is_readable|is_real|is_resource|is_scalar|is_soap_fault|is_string|is_subclass_of|is_uploaded_file|is_writable|is_writeable|mkdir|mktime|nl2br|parse_ini_file|parse_str|parse_url|passthru|pathinfo|readlink|realpath|rewind|rewinddir|rmdir|round|str_ireplace|str_pad|str_repeat|str_replace|str_rot13|str_shuffle|str_split|str_word_count|strcasecmp|strchr|strcmp|strcoll|strcspn|strftime|strip_tags|stripcslashes|stripos|stripslashes|stristr|strlen|strnatcasecmp|strnatcmp|strncasecmp|strncmp|strpbrk|strpos|strptime|strrchr|strrev|strripos|strrpos|strspn|strstr|strtok|strtolower|strtotime|strtoupper|strtr|strval|substr|substr_compare)\b/g,
+						'constant': /\b(__FILE__|__LINE__|__METHOD__|__FUNCTION__|__CLASS__)\b/g,
+						'boolean': /\b(true|false)\b/g,
+						'number': /\b-?(0x)?\d*\.?\d+\b/g,
+						// 'operator': /[-+]{1,2}|!|=?<|=?>|={1,2}|(\&){1,2}|\|?\||\?|\*|\//g,
+						'punctuation': /[{}[\];(),.:]/g
 					};
 					if (Prism.languages.markup) {
-					    Prism.languages.insertBefore('php', 'comment', {
-					        'markup': {
-					            pattern: /(\?>|\?>)[\w\W]*?(?=(<\?php|<\?php))/ig,
-					            lookbehind: true,
-					            inside: {
-					                'markup': {
-					                    pattern: /<\/?[\w:-]+\s*[\w\W]*?>/gi,
-					                    inside: Prism.languages.markup.tag.inside
-					                },
-					                rest: Prism.languages.php
-					            }
-					        }
-					    });
+						Prism.languages.insertBefore('php', 'comment', {
+							'markup': {
+								pattern: /(\?>|\?>)[\w\W]*?(?=(<\?php|<\?php))/ig,
+								lookbehind: true,
+								inside: {
+									'markup': {
+										pattern: /<\/?[\w:-]+\s*[\w\W]*?>/gi,
+										inside: Prism.languages.markup.tag.inside
+									},
+									rest: Prism.languages.php
+								}
+							}
+						});
 					}
 
 					var block = document.getElementsByTagName('pre')
-					
-					setTimeout(()=>{
-						for(var i=0;i<block.length;i++){
-							block[i].className= "language-php"
+
+					setTimeout(() => {
+						for (var i = 0; i < block.length; i++) {
+							block[i].className = "language-php"
 							Prism.highlightElement(block[i]);
 						}
-					},0)
-					
+					}, 0)
+
 				}
 			}
 		})
-	
+
 		//监听复制事件
-        document.onkeydown=function(e){
-	        var e = event || window.event || arguments.callee.caller.arguments[0];
-			if (e.keyCode == 67 && e.ctrlKey) {    
-			    vm.usedInc()
+		document.onkeydown = function (e) {
+			var e = event || window.event || arguments.callee.caller.arguments[0];
+			if (e.keyCode == 67 && e.ctrlKey) {
+				vm.usedInc()
 				vm.msg('复制成功!');
-            }
-	    }
+			}
+		}
 	</script>
 </body>
+
 </html>
